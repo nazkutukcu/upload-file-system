@@ -1,0 +1,100 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using System.Security.Claims;
+using tokenbasedauth_project.Model.Auth;
+using tokenbasedauth_project.Services;
+using tokenbasedauth_project.ViewModel;
+using WebApplication1.Models;
+
+namespace WebApplication1.Controllers
+{
+    [Authorize]
+    public class HomeController : Controller
+    {
+        private readonly ILogger<HomeController> _logger;
+        private IAuthService _authSerivce;
+        private IHttpContextAccessor _httpContextAccessor;
+        private TemsilcilerDto temsilcilerDto;
+
+        public HomeController(ILogger<HomeController> logger, IAuthService authSerivce, IHttpContextAccessor httpContextAccessor)
+        {
+            _logger = logger;
+            _authSerivce = authSerivce;
+            _httpContextAccessor = httpContextAccessor;
+        }
+        [AllowAnonymous]
+        public async Task<IActionResult> Index()
+        {
+
+            /*
+             1.encrytp servisinden 2 adet kayıt gelecek. (tarih,encrytp)
+            2.bu gelen verileri modele yazdır.
+            3-aldığın encrytp modelindeki encrytp değişkenini paralo olarak aşağıdaki login servisine gönder.
+
+             
+             */
+            var encode = _authSerivce.GetEncode("", "");
+
+            string encrytp = encode.encoded;
+            UserForLoginDto login = new UserForLoginDto {
+            locale="tr",
+            service= "performLogin",
+            usercode= "webservice21",
+            password= encrytp,
+            // password= encrytp,
+            };
+            var model = _authSerivce.Login(login);
+            var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);          
+            identity.AddClaim(new Claim(ClaimTypes.Authentication, model.token));
+            identity.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
+
+            var principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            return View();
+
+            //return View(model);
+        }
+
+        [Authorize(Roles ="Admin")]
+        public IActionResult Privacy()
+        {
+           
+            var token = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Authentication).Value;
+            TemsilcilerDto temsil = new TemsilcilerDto
+            {
+                method = "requestDataBySql",
+                sqlQuery = "SELECT A.UID,NVL(B.USERNAME,' ')||' '||NVL(B.SURNAME,' ') AS AGENT, " +
+                "TO_CHAR(A.BEGINDATE, ' YYYY/MM/DD ') AS XVALUE, " +
+                "SUM(CASE WHEN A.REASON = 'Requirement' THEN " +
+                "TIMESTAMPDIFF(2, NVL(A.ENDDATE, SYSDATE) - A.BEGINDATE) END) AS REQUIREMENT, " +
+                "SUM(CASE WHEN A.REASON = 'Food' THEN " +
+                "TIMESTAMPDIFF(2, NVL(A.ENDDATE, SYSDATE) - A.BEGINDATE) END) AS FOOD" +
+                " FROM TBLCCAGENTLOG A, VIEWUSERS B WHERE A.UNITUID ={UNITUID} " +
+                "AND B.UNITUID = A.UNITUID AND B.UID = A.UID AND A.UID IN " +
+                "(SELECT AGENT.UID FROM TBLCCAGENT AGENT " +
+                "WHERE AGENT.UNITUID= A.UNITUID AND " +
+                "AGENT.UID= A.UID) AND(A.BEGINDATE >= '01/03/2022' OR A.ENDDATE >= '13/03/2022') " +
+                "AND A.UID IN(SELECT UID FROM TBLCCSKILLAGENT " +
+                "WHERE UNITUID = '4a55c1e3-edd5-46ef-b66f-d74634e8469a') GROUP BY " +
+                "TO_CHAR(A.BEGINDATE, ' YYYY/MM/DD ') ,B.USERNAME,B.SURNAME," +
+                "A.UID ORDER BY XVALUE, AGENT",
+             
+            };
+            var model = _authSerivce.Temsilciler( temsil, token);
+
+            return View(model.data.rows);
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        
+
+    }
+}

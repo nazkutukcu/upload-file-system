@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\demo",
+    "\\demo\\Controllers",
+    "\\demo\\UploadedImages",
+    "\\demo\\Views",
+    "\\demo\\Views\\Deneme",
+    "\\demo\\Views\\FileUpload",
+    "\\demo\\Views\\Home",
+    "\\demo\\Views\\Pdf"
+  ],
+  "SelectedNode": "\\demo\\Views\\Deneme\\Upload.cshtml",
+  "PreviewInSolutionExplorer": false
+}

@@ -1,0 +1,156 @@
+﻿@model  demo.Models.deneme
+@using demo.Models
+
+@{
+    ViewBag.Title = "Upload";
+
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <script src="@Url.Content("~/Scripts/jquery-1.10.2.min.js")" type="text/javascript"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $('#Upload').prop('disabled', true);
+            $("#File").change(function () {
+
+                // Get uploaded file extension
+                var extension = $(this).val().split('.').pop().toLowerCase();
+                // Create array with the files extensions that we wish to upload
+                var validFileExtensions = ['doc', 'docx', 'pdf'];
+                //Check file extension in the array.if -1 that means the file extension is not in the list.
+                if ($.inArray(extension, validFileExtensions) == -1) {
+                    alert("Sorry!! Upload only 'doc', 'docx', 'pdf' file")
+                    // Clear fileuload control selected file
+                    $(this).replaceWith($(this).val('').clone(true));
+                    //Disable Submit Button
+                    $('#Upload').prop('disabled', true);
+                }
+                else {
+                    // Check and restrict the file size to 128 KB.
+                    if ($(this).get(0).files[0].size > (131072)) {
+                        alert("Sorry!! Max allowed file size is 128 kb");
+                        // Clear fileuload control selected file
+                        $(this).replaceWith($(this).val('').clone(true));
+                        //Disable Submit Button
+                        $('#Upload').prop('disabled', true);
+                    }
+                    else {
+                        //Enable Submit Button
+                        $('#Upload').prop('disabled', false);
+                    }
+                }
+            });
+
+
+            $("#Upload").click(function () {
+                if ($("#Id").val() = null || $("#Url").val() || $("#UserId").val() || $("#FileName").val() || $("#Title").val() || $("#CreateDate").val() || $("#UserName").val()) {
+                    alert("Please fill out required fields(*)");
+                    return false;
+                }
+                return true;
+            });
+        });
+    </script>
+
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            padding: 15px;
+        }
+
+        thead {
+            background-color: skyblue;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div align="center">
+        @using (Html.BeginForm("Upload", "Deneme", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            <br />
+            <table cellpadding="5">
+                <thead>
+                    <tr>
+                        <td colspan="2" style="text-align:center">HALK YATIRIM DOSYA TRANSFER SİSTEMİ </td>
+                    </tr>
+
+                </thead>
+                <tr>
+                    <td colspan="2"> Upload pdf </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(m => m.Title)<b style="color:red"> *</b>
+                    </td>
+
+                    <td>
+                        @Html.TextBoxFor(m => m.Title, new { type = "text" })
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(m => m.File)<b style="color:red"> *</b>
+                    </td>
+                    <td>
+                        @Html.TextBoxFor(m => m.File, new { type = "file" })
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:right">
+                        <input type="submit" id="Upload" value="Upload" />
+                    </td>
+                </tr>
+                <tr>
+
+            </table>
+
+        }
+    </div>
+
+
+
+</body>
+
+</html>
+
+
+<br />
+<br />
+<br />
+
+
+
+
+<div class="table-responsive">
+    <table class="table" id="mytable">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Başlık</th>
+                <th scope="col">Dosya URL</th>
+             
+            </tr>
+        </thead>
+        <tbody>
+            @if (ViewBag.table != null)
+            {
+                foreach (var item in ViewBag.table as List<DuyuruFileUrl>)
+                {
+                    <tr>
+                        <th scope="row">@item.Title</th>
+                        <td><a href="@item.Url" target="_blank">@item.Url</a></td>
+                        
+                    </tr>
+                }
+            }
+
+
+        </tbody>
+    </table>
+</div>

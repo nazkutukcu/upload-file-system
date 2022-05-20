@@ -1,0 +1,149 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Dosya Transfer Sistemi</h1>
+
+</div>
+
+
+<script type="text/javascript">
+	$(document).ready(function () {
+
+
+		$("span").filter(function () {
+			if ($(this).text() === 'Remove') {
+
+				$(this).text("Sil");
+			}
+			if ($(this).text() === 'Cancel') {
+
+				$(this).text("Kapat");
+			}
+			if ($(this).text() === 'Upload') {
+
+				$(this).parent().hide();
+
+			}
+			if ($(this).text() === 'Browse …') {
+
+				$(this).text("Seçiniz...");
+			}
+
+
+
+
+		});
+
+
+
+		$(".file-caption-name").attr("placeholder", "Dosya Seçiniz");
+		$(".file-drop-zone-title").html("Dosya Sürükleyin");
+
+
+	});
+
+</script>
+
+<hr>
+
+
+
+
+@using (Html.BeginForm("fileUpload", "Home", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+
+    <input id="Title" name="Title" type="text" class="form-control" placeholder="Konu Başlığı">
+    <input id="file-0" name="files" type="file">
+    <br>
+
+    <br>
+
+
+
+    <div class="text-right mb-3">
+        <input type="submit" class="btn btn-primary btn-lg pull-right" style="font-family:'Comic Sans MS'" value="Yükle" id="Yukle" />
+    </div>
+
+
+
+
+}
+<br />
+<br />
+<hr />
+
+<script type="text/javascript">
+	$(document).on("click", "#Copy", function () {
+		var CopyURL = $("#CopyURL");
+		var ViewUrlText = $("#ViewUrlText");
+		var value = $(this).attr("data-id");
+
+		var clipboard = new ClipboardJS(this);
+		clipboard.on('success', function (e) {
+			console.log(e.text);
+		});
+
+		clipboard.on('error', function(e) {
+			console.log(e);
+		});
+		ViewUrlText.text("Kopyalanan Metin :");
+		CopyURL.html(value);
+
+	});
+</script>
+<script type="text/javascript">
+	$(document).on("click", "#Delete", function () {
+		var CopyURL = $("#CopyURL");
+		var ViewUrlText = $("#ViewUrlText");
+		var value = $(this).attr("seq");
+
+		  var confirmDelete = confirm("Silme İşlemini Onaylıyormusunuz");
+            if (confirmDelete) {
+                var id =$(this).attr("data-id");
+                var deleteTr = $(this).closest("tr");
+                $.ajax({
+                    url: '/Home/DosyaSil/' + id,
+                    type: 'POST',
+                    success: function (result) {
+                        if (result == "1") {
+                            deleteTr.fadeOut(1000, function () {
+								deleteTr.remove();
+								ViewUrlText.text("Silinen Metin :");
+								CopyURL.html(value);
+                            });
+
+                        } else {
+                            alert("Silme İşleminde Hata...!");
+                        }
+
+                    }
+
+                });
+            }
+
+
+
+
+	});
+
+</script>
+<div class="table-responsive">
+    <table class="table" id="mytable">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Başlık</th>
+                <th scope="col">Dosya Adı</th>
+                <th scope="col">Dosya URL</th>
+                <th scope="col">Yükleyen</th>
+                <th scope="col">Tarih</th>
+                <th scope="col">Kopyala</th>
+                <th scope="col">Sil</th>
+            </tr>
+        </thead>
+
+    </table>
+</div>
+
+
